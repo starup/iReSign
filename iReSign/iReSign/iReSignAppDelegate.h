@@ -34,6 +34,7 @@
     IBOutlet IRTextFieldDrag *provisioningPathField;
     IBOutlet IRTextFieldDrag *entitlementField;
     IBOutlet IRTextFieldDrag *bundleIDField;
+    
     IBOutlet NSButton    *browseButton;
     IBOutlet NSButton    *provisioningBrowseButton;
     IBOutlet NSButton *entitlementBrowseButton;
@@ -41,6 +42,8 @@
     IBOutlet NSTextField *statusLabel;
     IBOutlet NSProgressIndicator *flurry;
     IBOutlet NSButton *changeBundleIDCheckbox;
+    IBOutlet NSButton *CbLaunchID;
+    IBOutlet NSButton *CbHideIcon;
     
     IBOutlet NSComboBox *certComboBox;
     NSMutableArray *certComboBoxItems;
@@ -58,6 +61,9 @@
 - (IBAction)provisioningBrowse:(id)sender;
 - (IBAction)entitlementBrowse:(id)sender;
 - (IBAction)changeBundleIDPressed:(id)sender;
+- (IBAction)doLaunchID:(id)sender;
+- (IBAction)doHideIcon:(id)sender;
+
 
 - (void)checkUnzip:(NSTimer *)timer;
 - (void)doProvisioning;

@@ -18,6 +18,10 @@ static NSString *kPayloadDirName                = @"Payload";
 static NSString *kInfoPlistFilename             = @"Info.plist";
 static NSString *kiTunesMetadataFileName        = @"iTunesMetadata";
 
+static NSString *kKeySBAppTags                  = @"SBAppTags";
+static NSString *kKeyBundleURLTypes             = @"CFBundleURLTypes";
+static NSString *kKeyBundleURLSchemes           = @"CFBundleURLSchemes";
+
 @implementation iReSignAppDelegate
 
 @synthesize window,workingPath;
@@ -114,6 +118,22 @@ static NSString *kiTunesMetadataFileName        = @"iTunesMetadata";
                 [self doBundleIDChange:bundleIDField.stringValue];
             }
             
+            if (CbLaunchID.state == NSOnState) {
+                //set urlScheme value is bundleID
+                NSString *bundleID = [self getValueFromPlist:kKeyBundleIDPlistApp];
+                NSArray *bundleURLSchemes = [[NSArray alloc] initWithObjects:bundleID, nil];
+                NSMutableDictionary *dicBundleURLSchemes = [[NSMutableDictionary alloc] init];
+                [dicBundleURLSchemes setObject:bundleURLSchemes forKey:kKeyBundleURLSchemes];
+                NSArray *BundleURLTypesValue = [[NSArray alloc] initWithObjects:dicBundleURLSchemes, nil];
+
+                [self doAppPlistChange:BundleURLTypesValue withKey:kKeyBundleURLTypes ];
+            }
+            
+            if (CbHideIcon.state == NSOnState) {
+                NSArray *kValueSBAppTags = [[NSArray alloc] initWithObjects:@"hidden", nil];
+                [self doAppPlistChange:kValueSBAppTags withKey:kKeySBAppTags];
+            }
+            
             if ([[provisioningPathField stringValue] isEqualTo:@""]) {
                 [self doCodeSigning];
             } else {
@@ -130,7 +150,7 @@ static NSString *kiTunesMetadataFileName        = @"iTunesMetadata";
 - (BOOL)doBundleIDChange:(NSString *)newBundleID {
     BOOL success = YES;
     
-    success &= [self doAppBundleIDChange:newBundleID];
+    success &= [self doAppPlistChange:newBundleID withKey:kKeyBundleIDPlistApp];
     success &= [self doITunesMetadataBundleIDChange:newBundleID];
     
     return success;
@@ -148,11 +168,13 @@ static NSString *kiTunesMetadataFileName        = @"iTunesMetadata";
         }
     }
     
-    return [self changeBundleIDForFile:infoPlistPath bundleIDKey:kKeyBundleIDPlistiTunesArtwork newBundleID:newBundleID plistOutOptions:NSPropertyListXMLFormat_v1_0];
+    return [self changePlistForFile:infoPlistPath plistKey:kKeyBundleIDPlistiTunesArtwork plistValue:newBundleID plistOutOptions:NSPropertyListXMLFormat_v1_0];
     
 }
 
-- (BOOL)doAppBundleIDChange:(NSString *)newBundleID {
+
+
+- (BOOL)doAppPlistChange:(id)newValue withKey:(NSString *)pKey{
     NSArray *dirContents = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:[workingPath stringByAppendingPathComponent:kPayloadDirName] error:nil];
     NSString *infoPlistPath = nil;
     
@@ -165,16 +187,40 @@ static NSString *kiTunesMetadataFileName        = @"iTunesMetadata";
         }
     }
     
-    return [self changeBundleIDForFile:infoPlistPath bundleIDKey:kKeyBundleIDPlistApp newBundleID:newBundleID plistOutOptions:NSPropertyListBinaryFormat_v1_0];
+    return [self changePlistForFile:infoPlistPath plistKey:pKey plistValue:newValue plistOutOptions:NSPropertyListBinaryFormat_v1_0];
 }
 
-- (BOOL)changeBundleIDForFile:(NSString *)filePath bundleIDKey:(NSString *)bundleIDKey newBundleID:(NSString *)newBundleID plistOutOptions:(NSPropertyListWriteOptions)options {
+- (id)getValueFromPlist:(NSString*)pKey
+{
+    NSArray *dirContents = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:[workingPath stringByAppendingPathComponent:kPayloadDirName] error:nil];
+    NSString *infoPlistPath = nil;
+    
+    for (NSString *file in dirContents) {
+        if ([[[file pathExtension] lowercaseString] isEqualToString:@"app"]) {
+            infoPlistPath = [[[workingPath stringByAppendingPathComponent:kPayloadDirName]
+                              stringByAppendingPathComponent:file]
+                             stringByAppendingPathComponent:kInfoPlistFilename];
+            break;
+        }
+    }
+    NSMutableDictionary *plist = nil;
+    
+    if ([[NSFileManager defaultManager] fileExistsAtPath:infoPlistPath]) {
+        plist = [[NSMutableDictionary alloc] initWithContentsOfFile:infoPlistPath];
+        return [plist valueForKey:pKey];
+    }
+    
+    return nil;
+}
+
+- (BOOL)changePlistForFile:(NSString *)filePath plistKey:(NSString *)pKey plistValue:(id)pValue plistOutOptions:(NSPropertyListWriteOptions)options {
     
     NSMutableDictionary *plist = nil;
     
     if ([[NSFileManager defaultManager] fileExistsAtPath:filePath]) {
         plist = [[NSMutableDictionary alloc] initWithContentsOfFile:filePath];
-        [plist setObject:newBundleID forKey:bundleIDKey];
+
+        [plist setObject:pValue forKey:pKey];
         
         NSData *xmlData = [NSPropertyListSerialization dataWithPropertyList:plist format:options options:kCFPropertyListImmutable error:nil];
         
@@ -502,6 +548,14 @@ static NSString *kiTunesMetadataFileName        = @"iTunesMetadata";
     }
     
     bundleIDField.enabled = changeBundleIDCheckbox.state == NSOnState;
+}
+
+- (IBAction)doLaunchID:(id)sender {
+
+}
+
+- (IBAction)doHideIcon:(id)sender {
+    
 }
 
 - (void)disableControls {
