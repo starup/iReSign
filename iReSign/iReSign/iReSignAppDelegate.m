@@ -106,6 +106,7 @@ static NSString *kKeyBundleURLSchemes           = @"CFBundleURLSchemes";
 }
 
 - (void)checkUnzip:(NSTimer *)timer {
+    NSLog(@"checkUnzip");
     if ([unzipTask isRunning] == 0) {
         [timer invalidate];
         unzipTask = nil;

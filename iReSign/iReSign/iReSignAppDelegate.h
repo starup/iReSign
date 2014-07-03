@@ -29,12 +29,14 @@
     
     NSString *codesigningResult;
     NSString *verificationResult;
-    
+
+    IBOutlet IRTextFieldDrag *dylibPathField;
     IBOutlet IRTextFieldDrag *pathField;
     IBOutlet IRTextFieldDrag *provisioningPathField;
     IBOutlet IRTextFieldDrag *entitlementField;
     IBOutlet IRTextFieldDrag *bundleIDField;
-    
+
+    IBOutlet NSButton    *dylibBrowseButton;
     IBOutlet NSButton    *browseButton;
     IBOutlet NSButton    *provisioningBrowseButton;
     IBOutlet NSButton *entitlementBrowseButton;
@@ -56,6 +58,7 @@
 
 @property (nonatomic, strong) NSString *workingPath;
 
+- (IBAction)dylibBrowse:(id)sender;
 - (IBAction)resign:(id)sender;
 - (IBAction)browse:(id)sender;
 - (IBAction)provisioningBrowse:(id)sender;
